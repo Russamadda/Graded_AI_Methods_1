@@ -1,5 +1,7 @@
-import os, re, sys, glob, click, regex
+import os, re, sys, glob, regex
 from typing import List
+
+
 
 
 BRACKET_PATTERNS = [
@@ -62,7 +64,7 @@ import click
 @click.command()
 @click.option("--in_dir", required=True, type=click.Path(exists=True, file_okay=False))
 @click.option("--out_dir", required=True, type=click.Path(file_okay=False))
-@click.option("--lower/--no-lower", default=False, help="Lowercase the text before sentence splitting")
+@click.option("--lower/--no-lower", default=True, help="Lowercase the text before sentence splitting")
 @click.option("--drop-brackets/--keep-brackets", default=True, help="Remove bracketed blocks like [..], (..), {{..}}, <..>")
 def main(in_dir: str, out_dir: str, lower: bool, drop_brackets: bool):
     os.makedirs(out_dir, exist_ok=True)

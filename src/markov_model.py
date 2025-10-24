@@ -1,10 +1,13 @@
 
 from collections import defaultdict, Counter
 import random
+from typing import Optional
 
 # A simple word-level Markov model for text generation
 class WordState:
-    def __init__(self):
+    def __init__(self, seed: Optional[int] = None):
+        if seed is not None:
+            random.seed(seed)
         self.starts = Counter()
         self.transitions = defaultdict(Counter)
 
@@ -25,12 +28,15 @@ class WordState:
     # Sample next state based on weights
     def _weighted_choice(self, counter: Counter):
         total = sum(counter.values())
+        if total <= 0:
+            return None
         r = random.randint(1, total)
         s = 0
         for w, c in counter.items():
             s += c
             if s >= r:
                 return w
+        return None
 
     # Sample a starting state
     def sample_start(self):
