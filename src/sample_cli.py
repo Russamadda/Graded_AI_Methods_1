@@ -25,7 +25,7 @@ def main():
     # Read cleaned sentences
     sents = read_clean_sentences(args.clean_dir)
     if len(sents) < 150:
-        print(f"Warning: only {len(sents)} sentences found. The assignment requires >=150.")
+        print(f"Warning: only {len(sents)} sentences found.")
     model = WordState()
     model.fit_from_sentences(sents)
     samples = model.generate(n=args.num, max_len=args.max_len)

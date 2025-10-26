@@ -1,4 +1,7 @@
-
+import argparse
+import glob
+import os
+import sys
 from collections import defaultdict, Counter
 import random
 from typing import Optional
@@ -25,31 +28,20 @@ class WordState:
             tokens = s.strip().split()
             self.update_from_tokens(tokens)
 
-    # Sample next state based on weights
+    # Weighted choice via random.choices
     def _weighted_choice(self, counter: Counter):
-        total = sum(counter.values())
-        if total <= 0:
+        if not counter:
             return None
-        r = random.randint(1, total)
-        s = 0
-        for w, c in counter.items():
-            s += c
-            if s >= r:
-                return w
-        return None
+        items, weights = zip(*counter.items())
+        return random.choices(items, weights=weights, k=1)[0]
 
     # Sample a starting state
     def sample_start(self):
-        if not self.starts:
-            return None
         return self._weighted_choice(self.starts)
 
     # Sample the next state given the current state
     def sample_next(self, w):
-        nxt = self.transitions.get(w)
-        if not nxt:
-            return None
-        return self._weighted_choice(nxt)
+        return self._weighted_choice(self.transitions.get(w, Counter()))
 
     # Generate a sentence
     def generate_sentence(self, max_len=30, end_tokens=('.', '!', '?')):
@@ -69,3 +61,54 @@ class WordState:
     # Generate multiple sentences
     def generate(self, n=5, max_len=30):
         return [self.generate_sentence(max_len=max_len) for _ in range(n)]
+
+
+def _load_sentences(path: str):
+    if os.path.isdir(path):
+        sentences = []
+        for fp in sorted(glob.glob(os.path.join(path, "*.txt"))):
+            with open(fp, encoding="utf-8") as f:
+                sentences.extend(ln.strip() for ln in f if ln.strip())
+        return sentences
+    with open(path, encoding="utf-8") as f:
+        return [ln.strip() for ln in f if ln.strip()]
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--train", default="data/clean")
+    parser.add_argument("--n", type=int, default=5,)
+    parser.add_argument("--max-len", type=int, default=30,)
+    parser.add_argument("--seed", type=int, default=None,)
+    parser.add_argument("--save", default="outputs/markov_samples.txt",
+)
+    args = parser.parse_args(argv)
+
+    sentences = _load_sentences(args.train)
+    if not sentences:
+        print(f"No sentences found in {args.train}", file=sys.stderr)
+        return 1
+    if len(sentences) < 150:
+        print(f"Warning: only {len(sentences)} sentences found. Consider adding more training data.", file=sys.stderr)
+
+    model = WordState(seed=args.seed)
+    model.fit_from_sentences(sentences)
+
+    generated = model.generate(n=args.n, max_len=args.max_len)
+    for idx, sentence in enumerate(generated, 1):
+        print(f"{idx:>2}: {sentence}")
+
+    if args.save:
+        save_dir = os.path.dirname(args.save)
+        if save_dir:
+            os.makedirs(save_dir, exist_ok=True)
+        with open(args.save, "w", encoding="utf-8") as f:
+            for sentence in generated:
+                f.write(sentence + "\n")
+        print(f"\nSaved to {args.save}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

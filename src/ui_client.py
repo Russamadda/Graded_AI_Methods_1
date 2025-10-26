@@ -107,10 +107,7 @@ def _scramble(n: int) -> str:
     return "".join(random.choice(MATRIX_CHARSET) for _ in range(n))
 
 def animate_matrix_reveal(line: str, title="Result", speed: float = 0.03, cycles: int = 10):
-    """
-    Reveal a full sentence word-by-word. Each word flickers with random glyphs
-    for `cycles` steps before locking into the true word.
-    """
+    
     words = line.split()
     shown_prefix = ""
     with Live(Panel("", title=f"[bright_green]{title}[/]", border_style=MATRIX_GREEN, box=box.SQUARE),
@@ -221,12 +218,14 @@ def main():
         def to_text(sample):
             if sample is None:
                 return ""
+                
             if isinstance(sample, (list, tuple)):
                 return " ".join(map(str, sample))
             return str(sample)
 
-        raw_samples = [model.generate(max_len=28) for _ in range(num_to_generate)]
-        samples = [to_text(s) for s in raw_samples]
+        
+        samples = model.generate(n=num_to_generate, max_len=28)
+
 
         if matrix_reveal:
             for i, line in enumerate(samples, 1):

@@ -15,7 +15,7 @@ User Interface (UI):
 Hidden Markov Model (HMM):  
   Adapted from an existing GitHub repository ([HMM-for-text-decryption](https://github.com/alessimichele/HMM-for-text-decryption)) to train on bigram states instead of for decryption. This was used to compare results with the Markov generator.  
 
-For running the UI please install dependencies trough requirements.txt:
+For running preprocessing, markov model and UI please install dependencies trough requirements.txt:
 
 conda create -n <enviroment> python=3.11 -y
 conda activate <enviroment>
@@ -23,3 +23,5 @@ conda activate <enviroment>
 pip install -r requirements.txt
 
 python src/ui_client.py
+python src/preprocess.py
+python src/markov_model.py
